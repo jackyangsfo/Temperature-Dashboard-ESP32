@@ -289,39 +289,35 @@ class EPD:
     ):
         """Draw sensor dashboard. full=True on first boot; False for routine updates."""
         self.clear(WHITE)
-        title = getattr(config, "DASHBOARD_TITLE", "Temp Dash")
         date_s = clock_date or "--"
         time_s = clock_time or "--:--"
 
-        # Top row: short title LEFT, large clock RIGHT (no overlap).
-        self.text_scaled(title, 12, 8, 2, BLACK)
-        # Right-align HH:MM (5 glyphs * 16px = 80)
+        # Top row: large date LEFT, large time RIGHT (no title — more room for date).
+        self.text_scaled(date_s, 12, 8, 2, BLACK)
         self.text_scaled(time_s, 400 - len(time_s) * 16 - 12, 8, 2, BLACK)
-        # Date under title
-        self.text(date_s, 12, 28, BLACK)
 
-        # Left column (below clock/date)
-        self.text("Temperature", 20, 52, BLACK)
-        self.text_scaled("{:.1f} C".format(temp_c), 20, 64, 2, BLACK)
+        # Left column
+        self.text("Temperature", 20, 44, BLACK)
+        self.text_scaled("{:.1f} C".format(temp_c), 20, 56, 2, BLACK)
 
-        self.text("Humidity", 20, 108, BLACK)
-        self.text_scaled("{:.0f} %RH".format(humidity), 20, 120, 2, BLACK)
+        self.text("Humidity", 20, 100, BLACK)
+        self.text_scaled("{:.0f} %RH".format(humidity), 20, 112, 2, BLACK)
 
-        self.text("Pressure", 20, 164, BLACK)
-        self.text_scaled("{:.0f} hPa".format(press_hpa), 20, 176, 2, BLACK)
+        self.text("Pressure", 20, 156, BLACK)
+        self.text_scaled("{:.0f} hPa".format(press_hpa), 20, 168, 2, BLACK)
 
         # Right column
-        self.text("Dew point", 210, 52, BLACK)
+        self.text("Dew point", 210, 44, BLACK)
         if dew_c is None:
-            self.text_scaled("--.- C", 210, 64, 2, BLACK)
+            self.text_scaled("--.- C", 210, 56, 2, BLACK)
         else:
-            self.text_scaled("{:.1f} C".format(dew_c), 210, 64, 2, BLACK)
+            self.text_scaled("{:.1f} C".format(dew_c), 210, 56, 2, BLACK)
 
-        self.text("Comfort", 210, 108, BLACK)
-        self.text_scaled(comfort if comfort else "--", 210, 120, 2, BLACK)
+        self.text("Comfort", 210, 100, BLACK)
+        self.text_scaled(comfort if comfort else "--", 210, 112, 2, BLACK)
 
-        self.text("Trend", 210, 164, BLACK)
-        self.text_scaled(trend if trend else "--", 210, 176, 2, BLACK)
+        self.text("Trend", 210, 156, BLACK)
+        self.text_scaled(trend if trend else "--", 210, 168, 2, BLACK)
 
         # Temperature sparkline
         hist = temp_history or []
@@ -329,8 +325,8 @@ class EPD:
             label = "Temp hist {:.1f}-{:.1f}C".format(min(hist), max(hist))
         else:
             label = "Temp hist (warming up)"
-        self.text(label, 20, 214, BLACK)
-        self.draw_sparkline(hist, 20, 226, 360, 28, BLACK)
+        self.text(label, 20, 210, BLACK)
+        self.draw_sparkline(hist, 20, 224, 360, 32, BLACK)
 
         # Footer: WiFi / setup — scale 2 only if it fits (setup text is long).
         footer = status if status else "WiFi --"

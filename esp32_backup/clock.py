@@ -68,12 +68,12 @@ def _local_tuple():
 
 
 def format_date():
-    """e.g. 'Thu Sep 24' or '--'."""
+    """e.g. 'Thu Sep 24 2026' or '--'."""
     tm = _local_tuple()
     if tm is None:
         return "--"
     # tm: (Y, M, D, h, m, s, weekday, yearday)
-    return "%s %s %d" % (_DAYS[tm[6]], _MONTHS[tm[1] - 1], tm[2])
+    return "%s %s %d %d" % (_DAYS[tm[6]], _MONTHS[tm[1] - 1], tm[2], tm[0])
 
 
 def format_time():
@@ -85,14 +85,15 @@ def format_time():
 
 
 def format_calendar_line():
-    """Single ASCII line for the e-paper header."""
+    """Single ASCII line for logs / status."""
     tm = _local_tuple()
     if tm is None:
         return "Clock --"
-    return "%s %s %d  %02d:%02d" % (
+    return "%s %s %d %d  %02d:%02d" % (
         _DAYS[tm[6]],
         _MONTHS[tm[1] - 1],
         tm[2],
+        tm[0],
         tm[3],
         tm[4],
     )

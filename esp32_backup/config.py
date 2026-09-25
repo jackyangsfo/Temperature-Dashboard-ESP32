@@ -57,10 +57,11 @@ NTP_SYNC_S = 3600  # re-sync about once per hour while online
 # Optional fallback if you upload credentials from a computer instead.
 WIFI_SSID = ""
 WIFI_PASSWORD = ""
-WIFI_TIMEOUT_S = 20
-WIFI_RETRY_S = 60
+WIFI_TIMEOUT_S = 15
+WIFI_RETRY_S = 30
 # After this many consecutive connect timeouts, reopen the phone setup hotspot
 # so the customer can enter a new WiFi name/password without a PC.
-WIFI_PORTAL_AFTER_FAILS = 3
+# With timeout=15s and retry=30s: fail1 → wait → fail2 ≈ about 1 minute.
+WIFI_PORTAL_AFTER_FAILS = 2
 # Phone joins this password when the setup hotspot is on (at least 8 characters).
 WIFI_AP_PASSWORD = "setup1234"

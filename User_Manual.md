@@ -51,7 +51,7 @@
 
 1. 保持设备通电。
 2. 设备会自动用旧密码重试连接。
-3. **大约 3 分钟内**（默认：连续失败 3 次）仍连不上时，会再次打开配网热点。
+3. **大约 1 分钟内**（默认：连续失败 2 次）仍连不上时，会再次打开配网热点。
 4. 屏幕底部重新出现：
    ```text
    TempDash-XXXX  pw setup1234
@@ -62,12 +62,12 @@
 
 | 项目 | 默认值 | 说明 |
 |------|--------|------|
-| 每次连接等待 | 约 20 秒 | 单次尝试上限 |
-| 失败后间隔 | 约 60 秒 | 再试前等待 |
-| 连续失败次数 | 3 次 | 达到后打开配网热点 |
-| **合计** | **约 3 分钟** | 之后出现 `TempDash-XXXX` |
+| 每次连接等待 | 约 15 秒 | 单次尝试上限 |
+| 失败后间隔 | 约 30 秒 | 再试前等待 |
+| 连续失败次数 | 2 次 | 达到后打开配网热点 |
+| **合计** | **约 1 分钟** | 之后出现 `TempDash-XXXX` |
 
-> 若设备**从未**成功连过网：第一次约 20 秒连不上就会直接打开配网热点。
+> 若设备**从未**成功连过网：第一次约 15 秒连不上就会直接打开配网热点。
 
 ---
 
@@ -111,7 +111,7 @@ A：确认设备已通电；等待屏幕底部出现配网文字后再搜；靠�
 A：确认手机已连上 `TempDash-XXXX`（不要连家里的 WiFi）；可关掉手机移动数据后再打开该地址。
 
 **Q：保存后连不上家里 WiFi？**  
-A：确认是 **2.4 GHz**；密码无误；路由器未开启仅 5G / 访客网络限制。等待约 3 分钟后可再次进入配网重试。
+A：确认是 **2.4 GHz**；密码无误；路由器未开启仅 5G / 访客网络限制。等待约 1 分钟后可再次进入配网重试。
 
 **Q：屏幕很久不更新？**  
 A：电子纸约每分钟刷一次属正常。若完全无变化，检查供电后重新插拔 USB 电源。
@@ -129,7 +129,7 @@ A：电子纸约每分钟刷一次属正常。若完全无变化，检查供电�
 
 ### Changing WiFi later
 
-After your home WiFi name/password changes, the device retries for about **3 minutes**, then reopens the `TempDash-XXXX` hotspot. Repeat the steps above with the new credentials.
+After your home WiFi name/password changes, the device retries for about **1 minute**, then reopens the `TempDash-XXXX` hotspot. Repeat the steps above with the new credentials.
 
 ---
 
