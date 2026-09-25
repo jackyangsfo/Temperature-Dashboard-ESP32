@@ -44,6 +44,14 @@ TEMP_HISTORY_LEN = 60
 # Shown on e-paper (ASCII only — default font has no Chinese glyphs)
 DASHBOARD_TITLE = "Temp Dash"
 
+# Temperature display unit: "C" (Celsius) or "F" (Fahrenheit).
+# Sensor math always uses Celsius; only the e-paper numbers change.
+TEMP_UNIT = "F"
+
+# Second page: monthly calendar grid. Each e-paper refresh alternates
+# sensors <-> calendar when True.
+CALENDAR_PAGE = True
+
 # --- Clock / calendar (NTP over WiFi) ---
 # Local offset from UTC in hours. Examples: US Pacific -7 (PDT) / -8 (PST),
 # China +8, Japan +9.

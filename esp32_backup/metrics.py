@@ -2,6 +2,8 @@
 
 import math
 
+import config
+
 
 def dew_point_c(temp_c, humidity):
     """Magnus formula dew point in °C."""
@@ -13,8 +15,29 @@ def dew_point_c(temp_c, humidity):
     return (b * gamma) / (a - gamma)
 
 
+def c_to_f(temp_c):
+    return float(temp_c) * 9.0 / 5.0 + 32.0
+
+
+def use_fahrenheit():
+    return str(getattr(config, "TEMP_UNIT", "C")).upper().startswith("F")
+
+
+def display_temp(temp_c):
+    """Value for e-paper, in the configured unit."""
+    if temp_c is None:
+        return None
+    if use_fahrenheit():
+        return c_to_f(temp_c)
+    return float(temp_c)
+
+
+def temp_unit_label():
+    return "F" if use_fahrenheit() else "C"
+
+
 def comfort_label(temp_c, humidity):
-    """Short indoor comfort hint for the dashboard."""
+    """Short indoor comfort hint for the dashboard (thresholds in °C)."""
     if humidity < 30:
         return "Too dry"
     if humidity > 70:

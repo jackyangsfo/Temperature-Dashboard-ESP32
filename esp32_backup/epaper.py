@@ -291,6 +291,11 @@ class EPD:
         self.clear(WHITE)
         date_s = clock_date or "--"
         time_s = clock_time or "--:--"
+        from metrics import display_temp, temp_unit_label
+
+        unit = temp_unit_label()
+        t_show = display_temp(temp_c)
+        dew_show = display_temp(dew_c) if dew_c is not None else None
 
         # Top row: large date LEFT, large time RIGHT (no title — more room for date).
         self.text_scaled(date_s, 12, 8, 2, BLACK)
@@ -298,7 +303,7 @@ class EPD:
 
         # Left column
         self.text("Temperature", 20, 44, BLACK)
-        self.text_scaled("{:.1f} C".format(temp_c), 20, 56, 2, BLACK)
+        self.text_scaled("{:.1f} {}".format(t_show, unit), 20, 56, 2, BLACK)
 
         self.text("Humidity", 20, 100, BLACK)
         self.text_scaled("{:.0f} %RH".format(humidity), 20, 112, 2, BLACK)
@@ -308,10 +313,10 @@ class EPD:
 
         # Right column
         self.text("Dew point", 210, 44, BLACK)
-        if dew_c is None:
-            self.text_scaled("--.- C", 210, 56, 2, BLACK)
+        if dew_show is None:
+            self.text_scaled("--.- {}".format(unit), 210, 56, 2, BLACK)
         else:
-            self.text_scaled("{:.1f} C".format(dew_c), 210, 56, 2, BLACK)
+            self.text_scaled("{:.1f} {}".format(dew_show, unit), 210, 56, 2, BLACK)
 
         self.text("Comfort", 210, 100, BLACK)
         self.text_scaled(comfort if comfort else "--", 210, 112, 2, BLACK)
@@ -319,20 +324,90 @@ class EPD:
         self.text("Trend", 210, 156, BLACK)
         self.text_scaled(trend if trend else "--", 210, 168, 2, BLACK)
 
-        # Temperature sparkline
+        # Temperature sparkline (convert history when showing F)
         hist = temp_history or []
-        if len(hist) >= 2:
-            label = "Temp hist {:.1f}-{:.1f}C".format(min(hist), max(hist))
+        hist_show = [display_temp(v) for v in hist] if hist else []
+        if len(hist_show) >= 2:
+            label = "Temp hist {:.1f}-{:.1f}{}".format(
+                min(hist_show), max(hist_show), unit
+            )
         else:
             label = "Temp hist (warming up)"
         self.text(label, 20, 210, BLACK)
-        self.draw_sparkline(hist, 20, 224, 360, 32, BLACK)
+        self.draw_sparkline(hist_show, 20, 224, 360, 32, BLACK)
 
         # Footer: WiFi / setup — scale 2 only if it fits (setup text is long).
         footer = status if status else "WiFi --"
         scale = 2 if len(footer) <= 22 else 1
         y = 268 if scale == 2 else 275
         self.text_scaled(footer, 12, y, scale, BLACK)
+        if getattr(config, "CALENDAR_PAGE", False):
+            self.text("1/2", 360, 280, BLACK)
+        self.show(full=full)
+
+    def show_calendar(
+        self,
+        month_info,
+        status="OK",
+        full=False,
+        clock_time=None,
+    ):
+        """Draw a simple monthly calendar grid (page 2)."""
+        self.clear(WHITE)
+        time_s = clock_time or "--:--"
+
+        if month_info is None:
+            self.text_scaled("Calendar", 12, 8, 2, BLACK)
+            self.text_scaled(time_s, 400 - len(time_s) * 16 - 12, 8, 2, BLACK)
+            self.text("Waiting for clock sync...", 20, 80, BLACK)
+            self.text("(connect WiFi for NTP)", 20, 100, BLACK)
+        else:
+            title = "%s %d" % (month_info["month_name"], month_info["year"])
+            self.text_scaled(title, 12, 8, 2, BLACK)
+            self.text_scaled(time_s, 400 - len(time_s) * 16 - 12, 8, 2, BLACK)
+
+            # Weekday headers
+            headers = ("Mo", "Tu", "We", "Th", "Fr", "Sa", "Su")
+            grid_x = 16
+            grid_y = 48
+            cell_w = 52
+            cell_h = 34
+            for i, name in enumerate(headers):
+                self.text(name, grid_x + i * cell_w + 14, grid_y, BLACK)
+            self.hline(grid_x, grid_y + 12, cell_w * 7, BLACK)
+
+            first = month_info["first_weekday"]  # 0=Mon
+            dim = month_info["days_in_month"]
+            today = month_info["today"]
+            for day in range(1, dim + 1):
+                idx = first + day - 1
+                col = idx % 7
+                row = idx // 7
+                cx = grid_x + col * cell_w
+                cy = grid_y + 18 + row * cell_h
+                label = "%2d" % day
+                # Center-ish in cell (2 chars * 8 = 16)
+                tx = cx + (cell_w - 16) // 2
+                ty = cy + 8
+                if day == today:
+                    # Highlight today with a box + larger digits
+                    self.fb.rect(cx + 4, cy + 2, cell_w - 8, cell_h - 6, BLACK)
+                    dlabel = "%d" % day
+                    self.text_scaled(
+                        dlabel,
+                        cx + (cell_w - len(dlabel) * 16) // 2,
+                        cy + 6,
+                        2,
+                        BLACK,
+                    )
+                else:
+                    self.text(label, tx, ty, BLACK)
+
+        footer = status if status else "WiFi --"
+        scale = 2 if len(footer) <= 18 else 1
+        y = 268 if scale == 2 else 275
+        self.text_scaled(footer, 12, y, scale, BLACK)
+        self.text("2/2", 360, 280, BLACK)
         self.show(full=full)
 
 

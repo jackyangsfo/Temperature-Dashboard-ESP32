@@ -53,6 +53,7 @@ def main():
     have_reading = False
     # Always paint once after boot (WiFi IP or setup hotspot text).
     screen_pending = True
+    page = 0  # 0 = sensors, 1 = calendar
     temp_c = press_hpa = humidity = dew = 0.0
     comfort = trend = ""
 
@@ -98,6 +99,10 @@ def main():
             or ticks_diff(now, last_epd_ms) >= config.EPD_REFRESH_S * 1000
         )
         if screen_due:
+            # Only scheduled refreshes advance the page carousel. Forced
+            # refreshes (WiFi/NTP) keep the same page so we don't get stuck
+            # on the calendar after a post-display WiFi reconnect.
+            timer_due = ticks_diff(now, last_epd_ms) >= config.EPD_REFRESH_S * 1000
             temp_history.add(temp_c)
             # Capture before init/show — those pause STA.
             status = wifi.status_text()
@@ -105,32 +110,45 @@ def main():
             time_s = clock.format_time()
             # Full refresh when the minute changes (fast mode can ghost digits).
             use_full = first or (time_s != last_time_s and time_s != "--:--")
+            show_cal = getattr(config, "CALENDAR_PAGE", False) and page == 1
             mode = "full" if use_full else "fast"
+            page_name = "calendar" if show_cal else "sensors"
             print(
-                "Updating e-Paper (%s) [%s] [%s %s]..."
-                % (mode, status, date_s, time_s)
+                "Updating e-Paper (%s/%s) [%s] [%s %s]..."
+                % (mode, page_name, status, date_s, time_s)
             )
             try:
                 epd.init()
-                epd.show_dashboard(
-                    temp_c,
-                    humidity,
-                    press_hpa,
-                    status=status,
-                    full=use_full,
-                    dew_c=dew,
-                    comfort=comfort,
-                    trend=trend,
-                    temp_history=temp_history.values(),
-                    clock_date=date_s,
-                    clock_time=time_s,
-                )
+                if show_cal:
+                    epd.show_calendar(
+                        clock.month_info(),
+                        status=status,
+                        full=use_full,
+                        clock_time=time_s,
+                    )
+                else:
+                    epd.show_dashboard(
+                        temp_c,
+                        humidity,
+                        press_hpa,
+                        status=status,
+                        full=use_full,
+                        dew_c=dew,
+                        comfort=comfort,
+                        trend=trend,
+                        temp_history=temp_history.values(),
+                        clock_date=date_s,
+                        clock_time=time_s,
+                    )
                 epd.sleep()
                 last_epd_ms = now
                 last_time_s = time_s
                 first = False
                 screen_pending = False
-                print("e-Paper updated")
+                # Advance page only on the normal refresh timer.
+                if getattr(config, "CALENDAR_PAGE", False) and timer_due:
+                    page = 1 - page
+                print("e-Paper updated (next page=%d)" % page)
             except OSError as e:
                 print("e-Paper error:", e)
                 last_epd_ms = now

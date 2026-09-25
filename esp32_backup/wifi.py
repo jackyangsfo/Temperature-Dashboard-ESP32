@@ -24,6 +24,7 @@ _fail_ms = 0
 _ever_ok = False
 _fail_count = 0
 _dirty = False
+_quiet_reconnect = False
 _ap_name = ""
 _ssid = ""
 _password = ""
@@ -68,7 +69,10 @@ def _save_creds(ssid, password):
 
 
 def _mark_dirty():
+    """Request a screen refresh, unless reconnecting after an e-paper update."""
     global _dirty
+    if _quiet_reconnect:
+        return
     _dirty = True
 
 
@@ -231,21 +235,24 @@ def pause_for_display():
 
 def resume_after_display():
     """Reconnect STA after the panel refresh, if it was paused."""
-    global _display_pause_count, _state
+    global _display_pause_count, _state, _quiet_reconnect
     if _display_pause_count == 0:
         return
     _display_pause_count -= 1
     if _display_pause_count > 0:
         return
     _state = "off"
+    # Reconnect quietly — do not force another e-paper refresh / page flip.
+    _quiet_reconnect = True
     start()
 
 
 def start():
     """Load credentials and begin STA, or open the phone setup page."""
-    global _wlan, _state, _attempt_ms, _fail_count
+    global _wlan, _state, _attempt_ms, _fail_count, _quiet_reconnect
     _load_creds()
     if not _ssid:
+        _quiet_reconnect = False
         print("No saved WiFi — opening phone setup")
         start_portal()
         return False
@@ -257,6 +264,7 @@ def start():
         _state = "ok"
         _fail_count = 0
         _mark_dirty()
+        _quiet_reconnect = False
         print("WiFi OK", _wlan.ifconfig()[0])
         return True
 
@@ -442,12 +450,14 @@ def poll():
         return False
 
     if is_connected():
+        global _quiet_reconnect
         if _state != "ok":
             print("WiFi OK", ip_address())
             _mark_dirty()
         _state = "ok"
         _ever_ok = True
         _fail_count = 0
+        _quiet_reconnect = False
         return True
 
     now = time.ticks_ms()

@@ -97,3 +97,32 @@ def format_calendar_line():
         tm[3],
         tm[4],
     )
+
+
+def _days_in_month(year, month):
+    if month == 2:
+        leap = year % 4 == 0 and (year % 100 != 0 or year % 400 == 0)
+        return 29 if leap else 28
+    if month in (4, 6, 9, 11):
+        return 30
+    return 31
+
+
+def month_info():
+    """Return current-month calendar fields, or None if clock not synced.
+
+    Keys: year, month, month_name, today, first_weekday (0=Mon), days_in_month
+    """
+    tm = _local_tuple()
+    if tm is None:
+        return None
+    year, month, day = tm[0], tm[1], tm[2]
+    first_weekday = (tm[6] - (day - 1)) % 7
+    return {
+        "year": year,
+        "month": month,
+        "month_name": _MONTHS[month - 1],
+        "today": day,
+        "first_weekday": first_weekday,
+        "days_in_month": _days_in_month(year, month),
+    }
