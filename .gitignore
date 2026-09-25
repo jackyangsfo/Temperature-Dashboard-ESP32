@@ -1,0 +1,20 @@
+# Secrets / local WiFi credentials — never commit
+esp32_backup/wifi.json
+wifi.json
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.env
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+
+# Build / export junk
+*.log
