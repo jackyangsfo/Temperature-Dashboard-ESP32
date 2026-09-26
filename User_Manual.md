@@ -97,12 +97,21 @@
 ## 5. 日常使用
 
 - 通电后自动测温并刷新电子纸。
-- 温度等读数约每几秒更新一次（内部）；电子纸约每 **60 秒** 刷新一次画面（以减少闪烁与耗电）。
+- 温度等读数约每几秒更新一次（内部）；电子纸约每 **30 秒** 刷新一次画面，并在传感器页与日历页之间切换。
 - 拔掉电脑 USB 后，只要仍有 USB 供电（充电器/充电宝），设备会继续运行。
 
 ---
 
-## 6. 常见问题
+## 6. 软件更新（OTA）
+
+- 设备在连上家里的 WiFi 后，**可能**通过网络自动下载软件更新（OTA）。
+- 更新时设备可能会短暂重启；一般无需操作。
+- **不保证长期提供或持续更新。** OTA 为增值功能，卖家可能随时调整、暂停或停止该服务。
+- 即使没有 OTA，设备在配好 WiFi 后仍可正常测温、显示与对时。
+
+---
+
+## 7. 常见问题
 
 **Q：手机搜不到 `TempDash-XXXX`？**  
 A：确认设备已通电；等待屏幕底部出现配网文字后再搜；靠近设备重试。
@@ -114,11 +123,14 @@ A：确认手机已连上 `TempDash-XXXX`（不要连家里的 WiFi）；可关�
 A：确认是 **2.4 GHz**；密码无误；路由器未开启仅 5G / 访客网络限制。等待约 1 分钟后可再次进入配网重试。
 
 **Q：屏幕很久不更新？**  
-A：电子纸约每分钟刷一次属正常。若完全无变化，检查供电后重新插拔 USB 电源。
+A：电子纸约每 30 秒刷一次属正常。若完全无变化，检查供电后重新插拔 USB 电源。
+
+**Q：一定会有软件更新吗？**  
+A：不一定。可能提供 OTA 更新，**不保证长期**。详见第 6 节。
 
 ---
 
-## 7. First-time WiFi setup (English)
+## 8. First-time WiFi setup (English)
 
 1. Power on the device.  
 2. Wait until the e-paper footer shows: `TempDash-XXXX  pw setup1234`.  
@@ -131,10 +143,15 @@ A：电子纸约每分钟刷一次属正常。若完全无变化，检查供电�
 
 After your home WiFi name/password changes, the device retries for about **1 minute**, then reopens the `TempDash-XXXX` hotspot. Repeat the steps above with the new credentials.
 
+### Software updates (OTA)
+
+The device **may** download software updates over WiFi (OTA) after it joins your network. Updates are **not guaranteed long-term** and may be changed, paused, or stopped at any time. The product still works for sensing, display, and clock sync without OTA.
+
 ---
 
-## 8. 安全提示
+## 9. 安全提示
 
 - 配网热点默认密码为 `setup1234`。量产前如需更改，请修改设备配置中的 `WIFI_AP_PASSWORD`。  
 - 请勿将含真实家庭 WiFi 密码的测试配置文件随产品寄出。  
-- BME280 请使用 **3.3V**；电子纸模块优先使用 **5V**（按产品接线说明）。
+- BME280 请使用 **3.3V**；电子纸模块优先使用 **5V**（按产品接线说明）。  
+- 软件更新（OTA）为可选增值服务，**不保证长期提供**。
