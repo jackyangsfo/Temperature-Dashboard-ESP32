@@ -129,6 +129,7 @@ Do **not** upload your personal `wifi.json` to a public machine image.
 | `WIFI_PORTAL_AFTER_FAILS` | `2` | Failures before reopening setup AP |
 | `OTA_ENABLED` | `True` | Allow GitHub updates |
 | `OTA_CHECK_S` | `86400` | OTA poll interval when online |
+| `OTA_RETRY_S` | `600` | Retry sooner after a failed OTA check |
 
 ---
 

@@ -3,7 +3,7 @@
 Flow:
   1. GET {OTA_BASE_URL}/version.json
   2. Compare with local version.txt
-  3. Download listed files to *.tmp, then replace
+  3. Download listed files to RAM, stage as *.ota, then commit
   4. Write version.txt and soft-reset
 
 Does NOT update: wifi.json (credentials), config.py (user settings).
@@ -15,7 +15,9 @@ import time
 import config
 
 _VERSION_PATH = "version.txt"
+_PROTECTED = ("wifi.json", "config.py", "version.txt")
 _last_check_ms = 0
+_last_error_ms = 0
 
 
 def local_version():
@@ -51,6 +53,21 @@ def _base_url():
 
 def _check_interval_ms():
     return int(getattr(config, "OTA_CHECK_S", 86400)) * 1000
+
+
+def _retry_interval_ms():
+    # After a failed check, wait this long before trying again (not a full day).
+    return int(getattr(config, "OTA_RETRY_S", 600)) * 1000
+
+
+def _safe_dest(name):
+    """Allow only a flat filename (no path separators / traversal)."""
+    dest = str(name or "").strip().replace("\\", "/")
+    if not dest or "/" in dest or dest in (".", "..") or dest.startswith("."):
+        return None
+    if dest in _PROTECTED or dest.endswith(".ota") or dest.endswith(".tmp"):
+        return None
+    return dest
 
 
 def _http_get(url, timeout_s=30):
@@ -129,28 +146,36 @@ def _http_get_ssl(url, timeout_s=30):
     return body
 
 
-def _write_atomic(dest, data):
-    tmp = dest + ".tmp"
-    with open(tmp, "wb") as f:
-        f.write(data)
+def _remove(path):
     try:
         import os
 
+        os.remove(path)
+    except OSError:
+        pass
+
+
+def _write_bytes(path, data):
+    with open(path, "wb") as f:
+        f.write(data)
+
+
+def _commit_file(dest, staged):
+    """Replace dest with staged file (best-effort atomic)."""
+    import os
+
+    try:
         try:
             os.remove(dest)
         except OSError:
             pass
-        os.rename(tmp, dest)
+        os.rename(staged, dest)
     except OSError:
-        # Some ports lack rename — copy then delete tmp
-        with open(dest, "wb") as f:
-            f.write(data)
-        try:
-            import os
-
-            os.remove(tmp)
-        except OSError:
-            pass
+        # rename missing — copy then delete staged
+        with open(staged, "rb") as f:
+            data = f.read()
+        _write_bytes(dest, data)
+        _remove(staged)
 
 
 def fetch_manifest():
@@ -161,7 +186,11 @@ def fetch_manifest():
 
 
 def apply_update(manifest):
-    """Download all files then reboot. Returns True if reboot was requested."""
+    """Download all files, stage, then commit and reboot.
+
+    Staging keeps live *.py untouched until every payload is on flash as *.ota.
+    Commit window is short (local FS only). version.txt is written last.
+    """
     files = manifest.get("files") or []
     if not files:
         print("OTA: no files in manifest")
@@ -171,24 +200,43 @@ def apply_update(manifest):
     downloaded = []
     for item in files:
         remote = item.get("remote") or item.get("path") or ""
-        dest = item.get("dest") or remote.split("/")[-1]
+        dest = _safe_dest(item.get("dest") or remote.split("/")[-1])
         if not remote or not dest:
-            continue
-        if dest in ("wifi.json", "config.py", "version.txt"):
-            print("OTA skip protected", dest)
+            print("OTA skip bad dest", item)
             continue
         url = base + "/" + remote.lstrip("/")
         print("OTA get", dest)
         data = _http_get(url)
+        if not data:
+            raise OSError("Empty download for %s" % dest)
         downloaded.append((dest, data))
 
     if not downloaded:
         print("OTA: nothing downloaded")
         return False
 
-    for dest, data in downloaded:
-        _write_atomic(dest, data)
-        print("OTA wrote", dest, len(data), "bytes")
+    # Phase 1 — stage beside live files (do not touch running modules yet).
+    staged = []
+    try:
+        for dest, data in downloaded:
+            path = dest + ".ota"
+            _write_bytes(path, data)
+            staged.append(path)
+            print("OTA staged", path, len(data), "bytes")
+    except Exception:
+        for path in staged:
+            _remove(path)
+        raise
+
+    # Phase 2 — commit staged -> live (short window).
+    try:
+        for dest, _data in downloaded:
+            _commit_file(dest, dest + ".ota")
+            print("OTA wrote", dest)
+    except Exception:
+        # Leave any remaining *.ota for a future retry / manual cleanup.
+        print("OTA commit failed; live files may be mixed")
+        raise
 
     ver = str(manifest.get("version") or "0.0.0")
     with open(_VERSION_PATH, "w") as f:
@@ -207,17 +255,16 @@ def check(force=False):
     Returns:
       "updated" | "current" | "skip" | "error"
     """
-    global _last_check_ms
+    global _last_check_ms, _last_error_ms
     if not getattr(config, "OTA_ENABLED", True):
         return "skip"
 
     now = time.ticks_ms()
-    if (
-        not force
-        and _last_check_ms
-        and time.ticks_diff(now, _last_check_ms) < _check_interval_ms()
-    ):
-        return "skip"
+    if not force:
+        if _last_check_ms and time.ticks_diff(now, _last_check_ms) < _check_interval_ms():
+            return "skip"
+        if _last_error_ms and time.ticks_diff(now, _last_error_ms) < _retry_interval_ms():
+            return "skip"
 
     try:
         import wifi
@@ -227,16 +274,22 @@ def check(force=False):
     except Exception:
         return "skip"
 
-    _last_check_ms = now
     local = local_version()
     try:
         manifest = fetch_manifest()
         remote = str(manifest.get("version") or "0.0.0")
         print("OTA local", local, "remote", remote)
         if not _newer(remote, local):
+            _last_check_ms = now
+            _last_error_ms = 0
             return "current"
         apply_update(manifest)
+        # reset() normally does not return
+        _last_check_ms = now
+        _last_error_ms = 0
         return "updated"
     except Exception as e:
         print("OTA error:", e)
+        _last_error_ms = now
+        # Do not advance _last_check_ms — retry after OTA_RETRY_S, not a full day.
         return "error"

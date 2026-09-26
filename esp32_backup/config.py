@@ -78,11 +78,13 @@ WIFI_AP_PASSWORD = "setup1234"
 # Board fetches version.json over WiFi and downloads listed .py files.
 # Does not overwrite wifi.json or config.py (keeps customer settings).
 OTA_ENABLED = True
-APP_VERSION = "1.1.1"
+APP_VERSION = "1.1.2"
 OTA_BASE_URL = (
     "https://raw.githubusercontent.com/jackyangsfo/Temperature-Dashboard-ESP32/master"
 )
 # How often to check when online (seconds). Default: once per day.
 OTA_CHECK_S = 86400
+# After a failed OTA check, retry sooner than OTA_CHECK_S.
+OTA_RETRY_S = 600
 # Also check once shortly after WiFi first connects.
 OTA_CHECK_ON_CONNECT = True
