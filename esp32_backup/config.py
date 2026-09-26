@@ -78,7 +78,7 @@ WIFI_AP_PASSWORD = "setup1234"
 # Board fetches version.json over WiFi and downloads listed .py files.
 # Does not overwrite wifi.json or config.py (keeps customer settings).
 OTA_ENABLED = True
-APP_VERSION = "1.1.0"
+APP_VERSION = "1.1.1"
 OTA_BASE_URL = (
     "https://raw.githubusercontent.com/jackyangsfo/Temperature-Dashboard-ESP32/master"
 )

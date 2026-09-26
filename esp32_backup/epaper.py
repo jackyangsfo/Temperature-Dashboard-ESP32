@@ -273,6 +273,16 @@ class EPD:
                 self.fb.line(prev[0], prev[1], px, py, color)
             prev = (px, py)
 
+    def _draw_version(self, app_version=None):
+        """Small version label at bottom-right. Returns its x so page tags can sit left."""
+        ver = str(app_version or getattr(config, "APP_VERSION", "") or "").strip()
+        if not ver:
+            return WIDTH - 8
+        label = ver if ver.startswith("v") else ("v" + ver)
+        x = WIDTH - len(label) * 8 - 8
+        self.text(label, x, 280, BLACK)
+        return x
+
     def show_dashboard(
         self,
         temp_c,
@@ -286,6 +296,7 @@ class EPD:
         temp_history=None,
         clock_date=None,
         clock_time=None,
+        app_version=None,
     ):
         """Draw sensor dashboard. full=True on first boot; False for routine updates."""
         self.clear(WHITE)
@@ -341,8 +352,9 @@ class EPD:
         scale = 2 if len(footer) <= 22 else 1
         y = 268 if scale == 2 else 275
         self.text_scaled(footer, 12, y, scale, BLACK)
+        vx = self._draw_version(app_version)
         if getattr(config, "CALENDAR_PAGE", False):
-            self.text("1/2", 360, 280, BLACK)
+            self.text("1/2", vx - 36, 280, BLACK)
         self.show(full=full)
 
     def show_calendar(
@@ -351,6 +363,7 @@ class EPD:
         status="OK",
         full=False,
         clock_time=None,
+        app_version=None,
     ):
         """Draw a simple monthly calendar grid (page 2)."""
         self.clear(WHITE)
@@ -407,7 +420,8 @@ class EPD:
         scale = 2 if len(footer) <= 18 else 1
         y = 268 if scale == 2 else 275
         self.text_scaled(footer, 12, y, scale, BLACK)
-        self.text("2/2", 360, 280, BLACK)
+        vx = self._draw_version(app_version)
+        self.text("2/2", vx - 36, 280, BLACK)
         self.show(full=full)
 
 

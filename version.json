@@ -1,6 +1,6 @@
 {
-  "version": "1.1.0",
-  "notes": "OTA from GitHub, calendar page, Fahrenheit, WiFi portal ~1 min",
+  "version": "1.1.1",
+  "notes": "Show app version on e-paper footer; OTA, calendar, Fahrenheit",
   "files": [
     {"remote": "esp32_backup/main.py", "dest": "main.py"},
     {"remote": "esp32_backup/epaper.py", "dest": "epaper.py"},

@@ -128,12 +128,14 @@ def main():
             )
             try:
                 epd.init()
+                ver = ota.local_version()
                 if show_cal:
                     epd.show_calendar(
                         clock.month_info(),
                         status=status,
                         full=use_full,
                         clock_time=time_s,
+                        app_version=ver,
                     )
                 else:
                     epd.show_dashboard(
@@ -148,6 +150,7 @@ def main():
                         temp_history=temp_history.values(),
                         clock_date=date_s,
                         clock_time=time_s,
+                        app_version=ver,
                     )
                 epd.sleep()
                 last_epd_ms = now
