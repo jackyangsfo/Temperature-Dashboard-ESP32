@@ -30,6 +30,7 @@ _ssid = ""
 _password = ""
 _display_pause_count = 0
 _last_ip = ""
+_last_footer = ""
 
 
 def _timeout_ms():
@@ -109,23 +110,51 @@ def _ap_password():
     return password
 
 
+def _rssi_dbm():
+    """Station RSSI in dBm, or None if unavailable."""
+    try:
+        if _wlan is not None and _wlan.active():
+            return int(_wlan.status("rssi"))
+    except Exception:
+        pass
+    return None
+
+
+def _signal_bars(rssi):
+    """ASCII signal meter for the e-paper footer (no IP)."""
+    if rssi is None:
+        return "WiFi [????]"
+    if rssi >= -55:
+        n = 4
+    elif rssi >= -65:
+        n = 3
+    elif rssi >= -75:
+        n = 2
+    elif rssi >= -85:
+        n = 1
+    else:
+        n = 0
+    return "WiFi [%s%s]" % ("#" * n, "-" * (4 - n))
+
+
 def status_text():
     """Short ASCII line for the e-paper footer."""
-    global _last_ip
+    global _last_ip, _last_footer
     if in_setup():
         return "%s  pw %s" % (setup_name(), _ap_password())
     if is_connected():
         _last_ip = ip_address()
-        return "WiFi " + _last_ip
-    # STA is briefly off during e-paper refresh; keep last IP for the footer.
-    if _display_pause_count > 0 and _last_ip:
-        return "WiFi " + _last_ip
+        _last_footer = _signal_bars(_rssi_dbm())
+        return _last_footer
+    # STA is briefly off during e-paper refresh; keep last signal for the footer.
+    if _display_pause_count > 0 and _last_footer:
+        return _last_footer
     if not _ssid:
         return "WiFi setup"
     if _state == "fail":
         return "WiFi fail"
     if _state == "connecting":
-        return "WiFi ..." + (" " + _last_ip if _last_ip else "")
+        return "WiFi ..."
     return "WiFi off"
 
 

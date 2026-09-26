@@ -83,7 +83,7 @@ esp32_backup/
 1. Power on → footer shows `TempDash-XXXX  pw setup1234`
 2. Phone joins that hotspot → open `http://192.168.4.1`
 3. Enter home **2.4 GHz** SSID/password → Save
-4. Footer shows `WiFi 192.168.x.x` when connected
+4. Footer shows `WiFi [####]` signal bars when connected (no IP)
 
 Details and troubleshooting: [User_Manual.md](User_Manual.md)
 

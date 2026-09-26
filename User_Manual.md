@@ -39,9 +39,9 @@
 7. 可断开手机与 `TempDash-XXXX` 的连接。设备会加入你家的 WiFi。
 8. 成功后，屏幕底部显示类似：
    ```text
-   WiFi 192.168.x.x
+   WiFi [####]
    ```
-   即表示联网成功（`192.168.x.x` 为设备局域网 IP）。
+   即表示联网成功（`#` 越多信号越好；不再显示 IP）。
 
 ---
 
@@ -88,7 +88,7 @@
 | 底部文字 | 含义 |
 |----------|------|
 | `TempDash-XXXX  pw setup1234` | 请用手机配网 |
-| `WiFi 192.168.x.x` | 已连接，显示本机 IP |
+| `WiFi [####]` / `WiFi [##--]` 等 | 已连接；`#` 为信号格（越满越好） |
 | `WiFi ...` | 正在连接 |
 | `WiFi fail` | 连接失败，稍后会重试；多次失败后进入配网 |
 
@@ -125,7 +125,7 @@ A：电子纸约每分钟刷一次属正常。若完全无变化，检查供电�
 3. On your phone, join WiFi **TempDash-XXXX** with password **setup1234**.  
 4. Open a browser to **http://192.168.4.1**.  
 5. Enter your home **2.4 GHz** WiFi name and password → Save.  
-6. When done, the footer shows `WiFi 192.168.x.x`.
+6. When done, the footer shows `WiFi [####]` (signal bars; more `#` = stronger).
 
 ### Changing WiFi later
 
