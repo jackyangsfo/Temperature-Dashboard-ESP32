@@ -17,6 +17,7 @@ from epaper import create_epd
 from metrics import dew_point_c, comfort_label, PressureTrend, TempHistory
 import wifi
 import clock
+import ota
 
 
 def main():
@@ -34,6 +35,7 @@ def main():
         return
 
     print("BME280 found at", hex(addr))
+    print("App version", ota.local_version())
     sensor = BME280(i2c, address=addr)
     pressure_trend = PressureTrend()
     temp_history = TempHistory(getattr(config, "TEMP_HISTORY_LEN", 60))
@@ -54,6 +56,7 @@ def main():
     # Always paint once after boot (WiFi IP or setup hotspot text).
     screen_pending = True
     page = 0  # 0 = sensors, 1 = calendar
+    ota_tried_connect = False
     temp_c = press_hpa = humidity = dew = 0.0
     comfort = trend = ""
 
@@ -63,6 +66,12 @@ def main():
         had_clock = clock.is_synced()
         if wifi.is_connected():
             clock.sync()
+            # OTA after WiFi is up (once on connect, then on OTA_CHECK_S).
+            if getattr(config, "OTA_CHECK_ON_CONNECT", True) and not ota_tried_connect:
+                ota_tried_connect = True
+                ota.check(force=True)
+            else:
+                ota.check(force=False)
         if clock.is_synced() and not had_clock:
             screen_pending = True
             print("Clock synced — refresh screen")

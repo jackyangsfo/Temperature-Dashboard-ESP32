@@ -1,0 +1,14 @@
+{
+  "version": "1.1.0",
+  "notes": "OTA from GitHub, calendar page, Fahrenheit, WiFi portal ~1 min",
+  "files": [
+    {"remote": "esp32_backup/main.py", "dest": "main.py"},
+    {"remote": "esp32_backup/epaper.py", "dest": "epaper.py"},
+    {"remote": "esp32_backup/wifi.py", "dest": "wifi.py"},
+    {"remote": "esp32_backup/clock.py", "dest": "clock.py"},
+    {"remote": "esp32_backup/metrics.py", "dest": "metrics.py"},
+    {"remote": "esp32_backup/bme280.py", "dest": "bme280.py"},
+    {"remote": "esp32_backup/boot.py", "dest": "boot.py"},
+    {"remote": "esp32_backup/ota.py", "dest": "ota.py"}
+  ]
+}

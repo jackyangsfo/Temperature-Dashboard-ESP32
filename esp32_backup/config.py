@@ -73,3 +73,16 @@ WIFI_RETRY_S = 30
 WIFI_PORTAL_AFTER_FAILS = 2
 # Phone joins this password when the setup hotspot is on (at least 8 characters).
 WIFI_AP_PASSWORD = "setup1234"
+
+# --- OTA (GitHub raw) ---
+# Board fetches version.json over WiFi and downloads listed .py files.
+# Does not overwrite wifi.json or config.py (keeps customer settings).
+OTA_ENABLED = True
+APP_VERSION = "1.1.0"
+OTA_BASE_URL = (
+    "https://raw.githubusercontent.com/jackyangsfo/Temperature-Dashboard-ESP32/master"
+)
+# How often to check when online (seconds). Default: once per day.
+OTA_CHECK_S = 86400
+# Also check once shortly after WiFi first connects.
+OTA_CHECK_ON_CONNECT = True
