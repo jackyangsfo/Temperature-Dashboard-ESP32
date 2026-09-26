@@ -109,8 +109,8 @@ def main():
         )
         if screen_due:
             # Only scheduled refreshes advance the page carousel. Forced
-            # refreshes (WiFi/NTP) keep the same page so we don't get stuck
-            # on the calendar after a post-display WiFi reconnect.
+            # refreshes (WiFi/NTP) keep the same page and do not reset the
+            # page timer (see last_epd_ms update below).
             timer_due = ticks_diff(now, last_epd_ms) >= config.EPD_REFRESH_S * 1000
             temp_history.add(temp_c)
             # Capture before init/show — those pause STA.
@@ -153,17 +153,21 @@ def main():
                         app_version=ver,
                     )
                 epd.sleep()
-                last_epd_ms = now
                 last_time_s = time_s
                 first = False
                 screen_pending = False
-                # Advance page only on the normal refresh timer.
-                if getattr(config, "CALENDAR_PAGE", False) and timer_due:
-                    page = 1 - page
+                # Only scheduled refreshes move the 30s clock and flip pages.
+                # Forced WiFi/NTP redraws must NOT reset last_epd_ms — that was
+                # making page changes feel much longer than EPD_REFRESH_S.
+                if timer_due:
+                    last_epd_ms = ticks_ms()
+                    if getattr(config, "CALENDAR_PAGE", False):
+                        page = 1 - page
                 print("e-Paper updated (next page=%d)" % page)
             except OSError as e:
                 print("e-Paper error:", e)
-                last_epd_ms = now
+                # Back off so a stuck panel does not spin the loop.
+                last_epd_ms = ticks_ms()
                 screen_pending = False
 
         if wifi.in_setup():
